@@ -57,7 +57,10 @@ This mode asks GPT-4 to grade and give a score to model's answer directly withou
 For each turn, GPT-4 will give a score on a scale of 10. We then compute the average score on all turns.
 
 For Finnish, indicate the language code `fi` so that it uses the Finnish questions and reference answers for grading.
-The judge prompt to GPT-4 is the same for all languages. We include language checking at this stage so that if the primary language of the answer does not match the primary language of the question, the answer is automatically given a score of 1 (lowest possible score) without querying GPT-4. 
+
+The judge prompt to GPT-4 is the same for all languages. 
+
+We include language checking at this stage so that if the primary language of the answer does not match the primary language of the question, the answer is automatically given a score of 1 (lowest possible score) without querying GPT-4. 
 ```
 export OPENAI_API_KEY=XXXXXX  # set the OpenAI API key
 python gen_judgment.py --model-list [LIST-OF-MODEL-ID] --parallel [num-concurrent-api-call] --lang [LANG-CODE]
