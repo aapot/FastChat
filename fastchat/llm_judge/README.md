@@ -6,7 +6,7 @@
 ## Finnish MTBench
 We extend the original MTBench to evaluate chat models in Finnish. We plan to support additional Nordic languages in the near future. 
 We translate the questions and reference answers from MTBench into Finnish using [DeepL](https://www.deepl.com/translator). 
-We added language identification when judging the model answers so th 
+We added language identification when judging the model answers so that the language of the answer matches the language of the question. If there is a language mismatch, we automatically set the score to [[1]] for single-answer grading without calling the LLM judge. Pairwise grading is not yet supported.
 
 ## Contents
 - [Install](#install)
@@ -20,13 +20,13 @@ git clone https://github.com/LumiOPen/FastChat.git
 cd FastChat
 pip install -e ".[model_worker,llm_judge]"
 ```
-Download [FastText language identifier](https://fasttext.cc/docs/en/language-identification.html) to your local machine and change `` in [common.py](https://github.com/LumiOpen/FastChat/blob/main/fastchat/llm_judge/common.py) to point to your local lid binary.
+Download [FastText language identifier](https://fasttext.cc/docs/en/language-identification.html) to your local machine and change `FASTTEXT_LID_BINARY` in [common.py](https://github.com/LumiOpen/FastChat/blob/main/fastchat/llm_judge/common.py) to point to your local lid binary.
 
 ## MT-Bench
 
-### Evaluate a model on MT-bench
+### Evaluate a model on MT-Bench
 
-#### Step 1. Generate model answers to MT-bench questions
+#### Step 1. Generate model answers to MT-Bench questions
 ```
 python gen_model_answer.py --model-path [MODEL-PATH] --model-id [MODEL-ID] --lang [LANG-CODE]
 ```
@@ -82,7 +82,7 @@ English judgment path stays the same at `data/mt_bench/model_judgment/gpt-4_sing
 
 ---
 
-### Other grading options
+### Other grading options (Not yet supported for Finnish)
 Besides score-based single-answer grading, we also support two additional grading options based on win rates:
 - `pariwise-baseline`: run pairwise comparison against a baseline model.
 - `pairwise-all`: run pairwise comparison between all model pairs on all questions.
@@ -113,7 +113,7 @@ python gen_judgment.py --mode pairwise-all --model-list [LIST-OF-MODEL-ID] --par
 python show_result.py --mode pairwise-all
 ```
 
-### How to get GPT-3.5/GPT-4/Claude's answer?
+### How to get GPT-3.5/GPT-4/Claude's answer? (Not yet supported for Finnish)
 - `python gen_api_answer.py --model [MODEL-NAME]` to generate GPT-3.5/4 and Claude's answers.
 
 
@@ -122,5 +122,10 @@ python show_result.py --mode pairwise-all
 You can use this [colab notebook](https://colab.research.google.com/drive/15O3Y8Rxq37PuMlArE291P4OC6ia37PQK#scrollTo=5i8R0l-XqkgO) to plot the radar figure for MT-bench.
 
 <img src="data/mt_bench/misc/radar.png" width="600" height="450">
+
+Alternatively, run the script:
+```
+python plot_results.py --judgment-file data/mt_bench/model_judgment/gpt-4_single_finnish.jsonl
+```
 
 
