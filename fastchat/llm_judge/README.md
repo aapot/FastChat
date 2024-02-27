@@ -1,9 +1,7 @@
-# LLM Judge
-
 ## Original MTBench paper and leaderboard
 | [Paper](https://arxiv.org/abs/2306.05685) | [Leaderboard](https://huggingface.co/spaces/lmsys/chatbot-arena-leaderboard) |
 
-## Finnish MTBench
+## Finnish MT-Bench
 We extend the original MTBench to evaluate chat models in Finnish. We plan to support additional Nordic languages in the near future. 
 We translate the questions and reference answers from MTBench into Finnish using [DeepL](https://www.deepl.com/translator). 
 We added language identification when judging the model answers so that the language of the answer matches the language of the question. If there is a language mismatch, we automatically set the score to [[1]] for single-answer grading without calling the LLM judge. Pairwise grading is not yet supported.
