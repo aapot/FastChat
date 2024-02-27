@@ -20,7 +20,7 @@ git clone https://github.com/LumiOPen/FastChat.git
 cd FastChat
 pip install -e ".[model_worker,llm_judge]"
 ```
-Download [FastText language identifier](https://fasttext.cc/docs/en/language-identification.html) to your local machine and change `` in common.py to point to your local lid binary.
+Download [FastText language identifier](https://fasttext.cc/docs/en/language-identification.html) to your local machine and change `` in [common.py](https://github.com/LumiOpen/FastChat/blob/main/fastchat/llm_judge/common.py) to point to your local lid binary.
 
 ## MT-Bench
 
