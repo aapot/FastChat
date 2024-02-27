@@ -14,11 +14,7 @@ from typing import Optional
 import openai
 import anthropic
 
-from fastchat.model.model_adapter import (
-    get_conversation_template,
-    ANTHROPIC_MODEL_LIST,
-    OPENAI_MODEL_LIST,
-)
+from fastchat.model.model_adapter import get_conversation_template, ANTHROPIC_MODEL_LIST
 
 # API setting constants
 API_MAX_RETRY = 16
@@ -55,6 +51,11 @@ reverse_model_map = {
 }
 
 
+# lang identification
+import fasttext
+FASTTEXT_LID_BINARY = "/scratch/project_462000319/zosaelai2/lid.176.bin"
+
+
 @dataclasses.dataclass
 class Judge:
     model_name: str
@@ -84,6 +85,16 @@ class MatchPair:
     ref_answer: dict = None
     multi_turn: bool = False
 
+def detect_language(sent: str):
+    lid_model = fasttext.load_model(FASTTEXT_LID_BINARY)
+    # remove \n from sentences because fasttext processes by line
+    sent = sent.replace("\n", " ") 
+    pred = lid_model.predict(sent)
+    # get top language
+    lang = pred[0][0].split("__")[-1] 
+    # get prob of top language
+    prob = pred[1][0]
+    return lang, prob
 
 def load_questions(question_file: str, begin: Optional[int], end: Optional[int]):
     """Load questions from a file."""
@@ -141,36 +152,56 @@ def run_judge_single(question, answer, judge, ref_answer, multi_turn=False):
             kwargs["ref_answer_2"] = ref_answer["choices"][0]["turns"][1]
 
     if multi_turn:
-        user_prompt = judge.prompt_template["prompt_template"].format(
-            question_1=question["turns"][0],
-            question_2=question["turns"][1],
-            answer_1=answer["choices"][0]["turns"][0],
-            answer_2=answer["choices"][0]["turns"][1],
-            **kwargs,
-        )
+        # check if language of question turn 2 and answer turn 2 are the same
+        question_lang, question_prob = detect_language(question["turns"][1])
+        answer_lang, answer_prob = detect_language(answer["choices"][0]["turns"][1])
     else:
-        user_prompt = judge.prompt_template["prompt_template"].format(
-            question=question["turns"][0],
-            answer=answer["choices"][0]["turns"][0],
-            **kwargs,
-        )
+        # check if language question turn 1 and answer turn 1 are the same
+        question_lang, question_prob = detect_language(question["turns"][0])
+        answer_lang, answer_prob = detect_language(answer["choices"][0]["turns"][0])
+    # if the language for question and answer are the same or lid is uncertain, proceed with GPT judgment
+    if question_lang == answer_lang or (question_prob < 0.50 or answer_prob < 0.50):
+        if multi_turn:
+            user_prompt = judge.prompt_template["prompt_template"].format(
+                question_1=question["turns"][0],
+                question_2=question["turns"][1],
+                answer_1=answer["choices"][0]["turns"][0],
+                answer_2=answer["choices"][0]["turns"][1],
+                **kwargs,
+            )
+        else:
+            user_prompt = judge.prompt_template["prompt_template"].format(
+                question=question["turns"][0],
+                answer=answer["choices"][0]["turns"][0],
+                **kwargs,
+            )
 
-    rating = -1
+        rating = -1
 
-    system_prompt = judge.prompt_template["system_prompt"]
-    conv = get_conversation_template(model)
-    conv.set_system_message(system_prompt)
-    conv.append_message(conv.roles[0], user_prompt)
-    conv.append_message(conv.roles[1], None)
+        system_prompt = judge.prompt_template["system_prompt"]
+        conv = get_conversation_template(model)
+        # print("\n\nTEMPLATE:", conv)
+        conv.set_system_message(system_prompt)
+        # print("\n\nTEMPLATE + SYSTEM MESSAGE:", conv)
+        conv.append_message(conv.roles[0], user_prompt)
+        # print("\n\nTEMPLATE + SYSTEM MESSAGE + USER_PROMPT", conv)
+        conv.append_message(conv.roles[1], None)
+        # print("\n\nTEMPLATE + SYSTEM MESSAGE + USER_PROMPT + RESPONSE", conv)
 
-    if model in OPENAI_MODEL_LIST:
-        judgment = chat_completion_openai(model, conv, temperature=0, max_tokens=2048)
-    elif model in ANTHROPIC_MODEL_LIST:
-        judgment = chat_completion_anthropic(
-            model, conv, temperature=0, max_tokens=1024
-        )
+        if model in ["gpt-3.5-turbo", "gpt-4"]:
+            judgment = chat_completion_openai(model, conv, temperature=0, max_tokens=2048)
+        elif model in ANTHROPIC_MODEL_LIST:
+            judgment = chat_completion_anthropic(
+                model, conv, temperature=0, max_tokens=1024
+            )
+        else:
+            raise ValueError(f"Invalid judge model name: {model}")
+
     else:
-        raise ValueError(f"Invalid judge model name: {model}")
+        # question language and answer language are different with high certainty
+        user_prompt = "NA"
+        judgment = """Language error. Question lang is {} ({}). Answer lang is {} ({}). Rating: [[1]] """
+        judgment.format(question_lang, round(question_prob, 2), answer_lang, round(answer_prob, 2))
 
     if judge.prompt_template["output_format"] == "[[rating]]":
         match = re.search(one_score_pattern, judgment)
@@ -189,7 +220,7 @@ def run_judge_single(question, answer, judge, ref_answer, multi_turn=False):
     return rating, user_prompt, judgment
 
 
-def play_a_match_single(match: MatchSingle, output_file: str):
+def play_a_match_single(match: MatchPair, output_file: str):
     question, model, answer, judge, ref_answer, multi_turn = (
         match.question,
         match.model,
@@ -227,7 +258,7 @@ def play_a_match_single(match: MatchSingle, output_file: str):
     if output_file:
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, "a") as fout:
-            fout.write(json.dumps(result) + "\n")
+            fout.write(json.dumps(result, ensure_ascii=False) + "\n")
 
     return result
 
@@ -266,7 +297,7 @@ def run_judge_pair(question, answer_a, answer_b, judge, ref_answer, multi_turn=F
     conv.append_message(conv.roles[0], user_prompt)
     conv.append_message(conv.roles[1], None)
 
-    if model in OPENAI_MODEL_LIST:
+    if model in ["gpt-3.5-turbo", "gpt-4"]:
         conv.set_system_message(system_prompt)
         judgment = chat_completion_openai(model, conv, temperature=0, max_tokens=2048)
     elif model in ANTHROPIC_MODEL_LIST:
@@ -399,12 +430,13 @@ def play_a_match_pair(match: MatchPair, output_file: str):
     if output_file:
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, "a") as fout:
-            fout.write(json.dumps(result) + "\n")
+            fout.write(json.dumps(result, ensure_ascii=False) + "\n")
 
     return result
 
 
 def chat_completion_openai(model, conv, temperature, max_tokens, api_dict=None):
+    messages = conv.to_openai_api_messages()
     if api_dict is not None:
         openai.api_base = api_dict["api_base"]
         openai.api_key = api_dict["api_key"]
@@ -467,16 +499,11 @@ def chat_completion_openai_azure(model, conv, temperature, max_tokens, api_dict=
     return output
 
 
-def chat_completion_anthropic(model, conv, temperature, max_tokens, api_dict=None):
-    if api_dict is not None and "api_key" in api_dict:
-        api_key = api_dict["api_key"]
-    else:
-        api_key = os.environ["ANTHROPIC_API_KEY"]
-
+def chat_completion_anthropic(model, conv, temperature, max_tokens):
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         try:
-            c = anthropic.Anthropic(api_key=api_key)
+            c = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
             prompt = conv.get_prompt()
             response = c.completions.create(
                 model=model,

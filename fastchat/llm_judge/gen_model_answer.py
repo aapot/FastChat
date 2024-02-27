@@ -105,12 +105,14 @@ def get_model_answers(
         for i in range(num_choices):
             torch.manual_seed(i)
             conv = get_conversation_template(model_id)
+            print("\n\nCONV:\n", conv)
             turns = []
             for j in range(len(question["turns"])):
                 qs = question["turns"][j]
                 conv.append_message(conv.roles[0], qs)
                 conv.append_message(conv.roles[1], None)
                 prompt = conv.get_prompt()
+                print("\n\nPROMPT:\n", prompt)
                 input_ids = tokenizer([prompt]).input_ids
 
                 if temperature < 1e-4:
@@ -171,7 +173,8 @@ def get_model_answers(
                 except RuntimeError as e:
                     print("ERROR question ID: ", question["question_id"])
                     output = "ERROR"
-
+                    
+                print("\n\nOUTPUT:\n", output)
                 conv.update_last_message(output)
                 turns.append(output)
 
@@ -261,13 +264,19 @@ if __name__ == "__main__":
         type=str,
         choices=["float32", "float16", "bfloat16"],
         help="Override the default dtype. If not set, it will use float16 on GPU and float32 on CPU.",
-        default=None,
+        default="bfloat16",
     )
     parser.add_argument(
         "--revision",
         type=str,
         default="main",
         help="The model revision to load.",
+    )
+    parser.add_argument(
+        "--lang",
+        type=str,
+        default="en",
+        help="Supported langs: en, fi",
     )
 
     args = parser.parse_args()
@@ -277,7 +286,10 @@ if __name__ == "__main__":
 
         ray.init()
 
-    question_file = f"data/{args.bench_name}/question.jsonl"
+    if args.lang == "fi":
+        question_file = f"data/{args.bench_name}/question_finnish.jsonl"
+    else:
+        question_file = f"data/{args.bench_name}/question.jsonl"
     if args.answer_file:
         answer_file = args.answer_file
     else:

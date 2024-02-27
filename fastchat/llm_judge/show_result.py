@@ -4,13 +4,48 @@ python3 show_result.py --mode [single|pairwise-baseline|pairwise-all]
 """
 import argparse
 import pandas as pd
+import json
 
 
-def display_result_single(args):
+
+def display_result_single_by_category(args):
+    questions = [json.loads(line) for line in open("data/mt_bench/question.jsonl")]
+    categories = sorted(set([entry['category'] for entry in questions]))
+    question_ids = {c: [] for c in categories}
+    for category in categories:
+        for entry in questions:
+            if entry['category'] == category:
+                question_ids[category].append(entry['question_id'])
     if args.input_file is None:
         input_file = (
             f"data/{args.bench_name}/model_judgment/{args.judge_model}_single.jsonl"
         )
+    else:
+        input_file = args.input_file
+
+    print(f"Input file: {input_file}")
+    df_all = pd.read_json(input_file, lines=True)
+    df = df_all[["model", "score", "turn", "question_id"]]
+    df = df[df["score"] != -1]
+
+    if args.model_list is not None:
+        df = df[df["model"].isin(args.model_list)]
+    
+    for category in categories:
+        print("\n##########", category, "##########")
+        df_1 = df[df["question_id"].isin(question_ids[category])].groupby(["model"]).mean()
+        print(df_1.sort_values(by="score", ascending=False))
+
+def display_result_single(args):
+    if args.input_file is None:
+        if args.lang == "fi":
+            input_file = (
+                f"data/{args.bench_name}/model_judgment/{args.judge_model}_single_finnish.jsonl"
+            )
+        else:            
+            input_file = (
+                f"data/{args.bench_name}/model_judgment/{args.judge_model}_single.jsonl"
+            )
     else:
         input_file = args.input_file
 
@@ -46,6 +81,9 @@ def display_result_pairwise(args):
 
     print(f"Input file: {input_file}")
     df_all = pd.read_json(input_file, lines=True)
+    model_1 = args.model_list[0]
+    model_2 = args.model_list[1]
+    df_all = df_all[(df_all["model_1"] == model_1) & (df_all["model_2"] == model_2)]
     df_all = df_all[(df_all["g1_winner"] != "error") & (df_all["g2_winner"] != "error")]
 
     model_list = (
@@ -98,6 +136,7 @@ if __name__ == "__main__":
     parser.add_argument("--input-file", type=str)
     parser.add_argument("--judge-model", type=str, default="gpt-4")
     parser.add_argument("--baseline-model", type=str, default="gpt-3.5-turbo")
+    parser.add_argument("--lang", type=str, default="en")
     parser.add_argument(
         "--model-list",
         type=str,
