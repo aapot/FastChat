@@ -4,11 +4,11 @@
 ## Finnish MT-Bench
 We extend the original MTBench to evaluate chat models in Finnish. We plan to support additional Nordic languages in the near future. 
 We translate the questions and reference answers from MTBench into Finnish using [DeepL](https://www.deepl.com/translator). 
+
 We added language identification when judging the model answers so that the language of the answer matches the language of the question. If there is a language mismatch, we automatically set the score to [[1]] for single-answer grading without calling the LLM judge. Pairwise grading is not yet supported.
 
 ## Contents
 - [Install](#install)
-- [Review Pre-Generated Model Answers and Judgments](#review-pre-generated-model-answers-and-judgments)
 - [MT-Bench](#mt-bench)
 
 
@@ -55,8 +55,9 @@ There are several options to use GPT-4 as a judge, such as pairwise winrate and 
 In MT-bench, we recommend single-answer grading as the default mode.
 This mode asks GPT-4 to grade and give a score to model's answer directly without pairwise comparison.
 For each turn, GPT-4 will give a score on a scale of 10. We then compute the average score on all turns.
+
 For Finnish, indicate the language code `fi` so that it uses the Finnish questions and reference answers for grading.
-The system prompt to the judge model is the same for all languages.
+The judge prompt to GPT-4 is the same for all languages. We include language checking at this stage so that if the primary language of the answer does not match the primary language of the question, the answer is automatically given a score of 1 (lowest possible score) without querying GPT-4. 
 ```
 export OPENAI_API_KEY=XXXXXX  # set the OpenAI API key
 python gen_judgment.py --model-list [LIST-OF-MODEL-ID] --parallel [num-concurrent-api-call] --lang [LANG-CODE]
@@ -68,7 +69,7 @@ python gen_judgment.py --model-list llama-7b-finnish-instruct-v0.2 --parallel 2 
 ```
 For Finnish judgments will be saved to `data/mt_bench/model_judgment/gpt-4_single_finnish.jsonl`
 
-English judgment path stays the same at `data/mt_bench/model_judgment/gpt-4_single.jsonl`
+English judgment file stays the same at `data/mt_bench/model_judgment/gpt-4_single.jsonl`
 
 #### Step 3. Show MT-Bench scores
 
@@ -124,7 +125,7 @@ You can use this [colab notebook](https://colab.research.google.com/drive/15O3Y8
 
 <img src="data/mt_bench/misc/radar.png" width="600" height="450">
 
-Alternatively, run the script with the path to the judgment file:
+Alternatively, run this script with the path to the judgment file:
 ```
 python plot_results.py --judgment-file data/mt_bench/model_judgment/gpt-4_single_finnish.jsonl
 ```
