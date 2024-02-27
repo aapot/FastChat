@@ -46,20 +46,7 @@ if __name__ == "__main__":
             scores_all.append({"model": model, "category": cat, "score": score})
 
     target_models = [
-        # "zephyr-7b-dpo-qlora",
-        "OpenHermes-2.5-Mistral-7B",
-        # "poro-100pct-dpo-ultrafeedback",
-        "poro-100pct-dpo-ultrafeedback-capybara-step1800",
-        # "poro-100pct-dpo-dolly-oasst1-oasst2-lima-glaive_eng-fin-en",
-        # "poro-100pct-capybara",
-        # "poro-100pct-ultrachat",
-        "poro-100pct-dolly-oasst2-lima-glaive-step2500",
-        # "poro-100pct-dolly-oasst1-oasst2-lima-glaive_eng-fin-step2400-en",
-        # "poro-100pct-dolly-oasst2-lima",
-        # "llama-7b-finnish-instruct-v3", # start Finnish models
-        # "poro-100pct-dolly-oasst1-lima-fi",
-        # "poro-100pct-dolly-oasst1-oasst2-lima-glaive_eng-fin-step2400-fi",
-        # "poro-100pct-dpo-dolly-oasst1-oasst2-lima-glaive_eng-fin-fi"
+        "llama-7b-finnish-instruct", # start Finnish models
     ]
 
     scores_target = [scores_all[i] for i in range(len(scores_all)) if scores_all[i]["model"] in target_models]
@@ -70,25 +57,10 @@ if __name__ == "__main__":
     df_score = pd.DataFrame(scores_target)
     df_score = df_score[df_score["model"].isin(target_models)]
 
-    rename_map = {
-                # "zephyr-7b-dpo-qlora": "Zephyr-7b-qlora",
-                "OpenHermes-2.5-Mistral-7B": "OpenHermes-2.5-Mistral-7B",
-                # "poro-100pct-dpo-ultrafeedback": "Poro-DPO-Ultrachat-Ultrafeedback",
-                "poro-100pct-dpo-ultrafeedback-capybara-step1800": "Poro-DPO-Capybara-Ultrafeedback",
-                # "poro-100pct-dpo-dolly-oasst1-oasst2-lima-glaive_eng-fin-en": "Poro-DPO-Dolly-OASST-LIMA-Glaive_eng-fin",
-                # "poro-100pct-capybara": "Poro-SFT-Capybara",
-                # "poro-100pct-ultrachat": "Poro-SFT-Ultrachat",
-                # "poro-100pct-dolly-oasst2-lima": "Poro-SFT-Dolly-OASST2-LIMA",
-                "poro-100pct-dolly-oasst2-lima-glaive-step2500": "Poro-SFT-Dolly-OASST2-LIMA-Glaive",
-                # "poro-100pct-dolly-oasst1-oasst2-lima-glaive_eng-fin-step2400-en": "Poro-SFT-Dolly-OASST-LIMA-Glaive_eng-fin",
-    }
 
-    # rename_map = {
-    #             "llama-7b-finnish-instruct-v3": "Llama-7b-Finnish-Instruct-v0.2",
-    #             "poro-100pct-dolly-oasst1-lima-fi": "Poro-SFT-Dolly-OASST1-LIMA-fi",
-    #             "poro-100pct-dolly-oasst1-oasst2-lima-glaive_eng-fin-step2400-fi": "Poro-SFT-Dolly-OASST-LIMA-Glaive_eng-fin",
-    #             "poro-100pct-dpo-dolly-oasst1-oasst2-lima-glaive_eng-fin-fi": "Poro-DPO-Dolly-OASST-LIMA-Glaive_eng-fin",
-    # }
+    rename_map = {
+                "llama-7b-finnish-instruct": "Llama-7b-Finnish-Instruct-v0.2",
+    }
 
     for k, v in rename_map.items():
         df_score.replace(k, v, inplace=True)

@@ -53,7 +53,8 @@ reverse_model_map = {
 
 # lang identification
 import fasttext
-FASTTEXT_LID_BINARY = "/scratch/project_462000319/zosaelai2/lid.176.bin"
+# Download Fasttext LID binary from https://fasttext.cc/docs/en/language-identification.html and add path below
+FASTTEXT_LID_BINARY = "/path/to/fasttext/lid/binary"
 
 
 @dataclasses.dataclass
