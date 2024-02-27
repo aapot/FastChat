@@ -5,7 +5,7 @@
 We extend the original MTBench to evaluate chat models in Finnish. We plan to support additional Nordic languages in the near future. 
 We translate the questions and reference answers from MTBench into Finnish using [DeepL](https://www.deepl.com/translator). 
 
-We added language identification when judging the model answers so that the language of the answer matches the language of the question. If there is a language mismatch, we automatically set the score to [[1]] for single-answer grading without calling the LLM judge. Pairwise grading is not yet supported.
+We added language identification when judging the model answers so that the language of the answer should match the language of the question. If there is a language mismatch, we automatically set the score to [[1]] for single-answer grading without calling the LLM judge. Pairwise grading is not yet supported.
 
 ## Contents
 - [Install](#install)
