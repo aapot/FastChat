@@ -35,11 +35,11 @@ Arguments:
 
 e.g. 
 
-English:
+**English**
 ```
 python gen_model_answer.py --model-path lmsys/vicuna-7b-v1.5 --model-id vicuna-7b-v1.5
 ```
-Finnish:
+**Finnish**
 ```
 python gen_model_answer.py --model-path Finnish-NLP/llama-7b-finnish-instruct-v0.2 --model-id llama-7b-finnish-instruct-v0.2 --lang fi
 ```
@@ -64,15 +64,25 @@ export OPENAI_API_KEY=XXXXXX  # set the OpenAI API key
 python gen_judgment.py --model-list [LIST-OF-MODEL-ID] --parallel [num-concurrent-api-call] --lang [LANG-CODE]
 ```
 
-e.g.,
+e.g.
+
+**English**
+```
+python gen_judgment.py --model-list vicuna-13b-v1.3 alpaca-13b llama-13b claude-v1 gpt-3.5-turbo gpt-4 --parallel 2
+```
+The judgments for English will be saved to `data/mt_bench/model_judgment/gpt-4_single.jsonl`
+
+**Finnish**
 ```
 python gen_judgment.py --model-list llama-7b-finnish-instruct-v0.2 --parallel 2 --lang fi
 ```
-For Finnish judgments will be saved to `data/mt_bench/model_judgment/gpt-4_single_finnish.jsonl`
+Finnish judgments will be saved to `data/mt_bench/model_judgment/gpt-4_single_finnish.jsonl`
 
-English judgment file stays the same at `data/mt_bench/model_judgment/gpt-4_single.jsonl`
+
 
 #### Step 3. Show MT-Bench scores
+
+**Finnish**
 
 - Show the scores for selected models
   ```
