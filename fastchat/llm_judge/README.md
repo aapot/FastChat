@@ -20,7 +20,7 @@ git clone https://github.com/LumiOPen/FastChat.git
 cd FastChat
 pip install -e ".[model_worker,llm_judge]"
 ```
-Download [FastText language identifier](https://fasttext.cc/docs/en/language-identification.html) to your local machine and change `FASTTEXT_LID_BINARY` in [common.py](https://github.com/LumiOpen/FastChat/blob/main/fastchat/llm_judge/common.py) to point to your local lid binary.
+Download [FastText language identifier](https://fasttext.cc/docs/en/language-identification.html) and change `FASTTEXT_LID_BINARY` in [common.py](https://github.com/LumiOpen/FastChat/blob/main/fastchat/llm_judge/common.py) to point to your local lid binary.
 
 ## MT-Bench
 
@@ -36,6 +36,7 @@ Arguments:
   - `[LANG-CODE]` two-letter language code. Choices are `en` or `fi`. Default is `en`.
 
 e.g. 
+
 English:
 ```
 python gen_model_answer.py --model-path lmsys/vicuna-7b-v1.5 --model-id vicuna-7b-v1.5
@@ -44,6 +45,7 @@ Finnish:
 ```
 python gen_model_answer.py --model-path Finnish-NLP/llama-7b-finnish-instruct-v0.2 --model-id llama-7b-finnish-instruct-v0.2 --lang fi
 ```
+
 The answers will be saved to `data/mt_bench/model_answer/[MODEL-ID].jsonl` regardless of the language.
 
 To make sure FastChat loads the correct prompt template, see the supported models and how to add a new model [here](../../docs/model_support.md#how-to-support-a-new-model).
@@ -55,7 +57,8 @@ There are several options to use GPT-4 as a judge, such as pairwise winrate and 
 In MT-bench, we recommend single-answer grading as the default mode.
 This mode asks GPT-4 to grade and give a score to model's answer directly without pairwise comparison.
 For each turn, GPT-4 will give a score on a scale of 10. We then compute the average score on all turns.
-
+For Finnish, indicate the language code `fi` so that it uses the Finnish questions and reference answers for grading.
+The system prompt to the judge model is the same for all languages.
 ```
 export OPENAI_API_KEY=XXXXXX  # set the OpenAI API key
 python gen_judgment.py --model-list [LIST-OF-MODEL-ID] --parallel [num-concurrent-api-call] --lang [LANG-CODE]
@@ -69,7 +72,7 @@ For Finnish judgments will be saved to `data/mt_bench/model_judgment/gpt-4_singl
 
 English judgment path stays the same at `data/mt_bench/model_judgment/gpt-4_single.jsonl`
 
-#### Step 3. Show MT-bench scores
+#### Step 3. Show MT-Bench scores
 
 - Show the scores for selected models
   ```
@@ -123,7 +126,7 @@ You can use this [colab notebook](https://colab.research.google.com/drive/15O3Y8
 
 <img src="data/mt_bench/misc/radar.png" width="600" height="450">
 
-Alternatively, run the script:
+Alternatively, run the script with the path to the judgment file:
 ```
 python plot_results.py --judgment-file data/mt_bench/model_judgment/gpt-4_single_finnish.jsonl
 ```
