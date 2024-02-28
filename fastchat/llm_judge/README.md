@@ -5,7 +5,7 @@
 We extend the original MTBench to evaluate chat models in Finnish. We plan to support additional Nordic languages in the near future. 
 We translate the questions and reference answers from MTBench into Finnish using [DeepL](https://www.deepl.com/translator). 
 
-We added language identification when judging the model answers so that the language of the answer should match the language of the question. If there is a language mismatch, we automatically set the score to [[1]] for single-answer grading without calling the LLM judge. Pairwise grading is not yet supported.
+We added language identification when judging the model answers so that the language of the answer should match the language of the question. If there is a language mismatch, we automatically set the score to [[1]] for single-answer grading without calling the LLM judge. For pairwise judging, if.
 
 ## Contents
 - [Install](#install)
@@ -37,11 +37,11 @@ e.g.
 
 **English**
 ```
-python gen_model_answer.py --model-path lmsys/vicuna-7b-v1.5 --model-id vicuna-7b-v1.5
+python gen_model_answer.py --model-path lmsys/vicuna-7b-v1.5 --model-id vicuna-7b-v1.5 --num-gpus-total 8 --num-gpus-per-model 8 
 ```
 **Finnish**
 ```
-python gen_model_answer.py --model-path Finnish-NLP/llama-7b-finnish-instruct-v0.2 --model-id llama-7b-finnish-instruct-v0.2 --lang fi
+python gen_model_answer.py --model-path LumiOpen/Poro-34B-Chat-beta --model-id Poro-34B-Chat-beta --num-gpus-total 8 --num-gpus-per-model 8  --lang fi
 ```
 
 The answers will be saved to `data/mt_bench/model_answer/[MODEL-ID].jsonl` regardless of the language.
@@ -74,7 +74,7 @@ The judgments for English will be saved to `data/mt_bench/model_judgment/gpt-4_s
 
 **Finnish**
 ```
-python gen_judgment.py --model-list llama-7b-finnish-instruct-v0.2 --parallel 2 --lang fi
+python gen_judgment.py --model-list Poro-34B-Chat-beta --parallel 2 --lang fi
 ```
 Finnish judgments will be saved to `data/mt_bench/model_judgment/gpt-4_single_finnish.jsonl`
 
@@ -86,7 +86,7 @@ Finnish judgments will be saved to `data/mt_bench/model_judgment/gpt-4_single_fi
 
 - Show the scores for selected models
   ```
-  python show_result.py --model-list llama-7b-finnish-instruct-v0.2 --lang fi
+  python show_result.py --model-list Poro-34B-Chat-beta --lang fi
   ```
 - Plot results as a spider plot
   ```
@@ -95,7 +95,7 @@ Finnish judgments will be saved to `data/mt_bench/model_judgment/gpt-4_single_fi
 
 ---
 
-### Other grading options (Not yet supported for Finnish)
+### Other grading options 
 Besides score-based single-answer grading, we also support two additional grading options based on win rates:
 - `pariwise-baseline`: run pairwise comparison against a baseline model.
 - `pairwise-all`: run pairwise comparison between all model pairs on all questions.
@@ -103,10 +103,18 @@ Besides score-based single-answer grading, we also support two additional gradin
 #### Option 2: pairwise comparison against a baseline (default: gpt-3.5-turbo)
 
 - Generate GPT-4 judgments
+
+**English** 
 ```
 python gen_judgment.py --mode pairwise-baseline --model-list vicuna-13b-v1.3 alpaca-13b llama-13b --parallel 2
 ```
 The judgments will be saved to `data/mt_bench/model_judgment/gpt-4_pair.jsonl`
+
+**Finnish** 
+```
+python gen_judgment.py --mode pairwise-baseline --model-list Poro-34B-Chat-beta llama-7b-finnish-instruct-v0.2 --parallel 2 --lang fi
+```
+The judgments will be saved to `data/mt_bench/model_judgment/gpt-4_pair_finnish.jsonl`
 
 - Show results
 ```
