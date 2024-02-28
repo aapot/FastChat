@@ -5,7 +5,8 @@
 We extend the original MTBench to evaluate chat models in Finnish. We plan to support additional Nordic languages in the near future. 
 We translate the questions and reference answers from MTBench into Finnish using [DeepL](https://www.deepl.com/translator). 
 
-We added language identification when judging the model answers so that the language of the answer should match the language of the question. If there is a language mismatch, we automatically set the score to [[1]] for single-answer grading without calling the LLM judge. For pairwise judging, if.
+We added language identification when judging the model answers so that the language of the answer should match the language of the question. If there is a language mismatch, we automatically set the score to [[1]] for single-answer grading without calling the LLM judge. 
+For pairwise judging, if the language of Model A does not match the language of the question but Model B does then B automatically wins. If both match, the pair of answers is passed to the judge. If neither model matches, the verdict is automatically an error.
 
 ## Contents
 - [Install](#install)
@@ -118,7 +119,7 @@ The judgments will be saved to `data/mt_bench/model_judgment/gpt-4_pair_finnish.
 
 - Show results
 ```
-python show_result.py --mode pairwise-baseline
+python show_result.py --mode pairwise-baseline --lang fi
 ```
 
 #### Option 3: Run GPT-4 judge with all pair comparisons
@@ -127,11 +128,11 @@ Another option is to run pairwise comparisons on all possible pairs.
 This could be more expensive when #models increases, but it gives you a more comprehensive information.
 
 ```
-python gen_judgment.py --mode pairwise-all --model-list [LIST-OF-MODEL-ID] --parallel [num-concurrent-api-call]
+python gen_judgment.py --mode pairwise-all --model-list [LIST-OF-MODEL-ID] --parallel [num-concurrent-api-call] --lang [LANG-CODE]
 ```
 
 ```
-python show_result.py --mode pairwise-all
+python show_result.py --mode pairwise-all --lang fi
 ```
 
 ### How to get GPT-3.5/GPT-4/Claude's answer? (Not yet supported for Finnish)
