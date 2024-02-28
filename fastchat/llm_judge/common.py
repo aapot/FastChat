@@ -53,8 +53,7 @@ reverse_model_map = {
 
 # lang identification
 import fasttext
-# Download Fasttext LID binary from https://fasttext.cc/docs/en/language-identification.html and add path below
-FASTTEXT_LID_BINARY = "/path/to/fasttext/lid/binary"
+FASTTEXT_LID_BINARY = "/scratch/project_462000319/zosaelai2/lid.176.bin"
 
 
 @dataclasses.dataclass
@@ -201,8 +200,8 @@ def run_judge_single(question, answer, judge, ref_answer, multi_turn=False):
     else:
         # question language and answer language are different with high certainty
         user_prompt = "NA"
-        judgment = """Language error. Question lang is {} ({}). Answer lang is {} ({}). Rating: [[1]] """
-        judgment.format(question_lang, round(question_prob, 2), answer_lang, round(answer_prob, 2))
+        judgment_template = """Language error. Question is {} ({}). Answer is {} ({}). Rating: [[1]] """
+        judgment = judgment_template.format(question_lang, round(question_prob, 2), answer_lang, round(answer_prob, 2))
 
     if judge.prompt_template["output_format"] == "[[rating]]":
         match = re.search(one_score_pattern, judgment)
@@ -273,43 +272,70 @@ def run_judge_pair(question, answer_a, answer_b, judge, ref_answer, multi_turn=F
             kwargs["ref_answer_2"] = ref_answer["choices"][0]["turns"][1]
 
     if multi_turn:
-        system_prompt = judge.prompt_template["system_prompt"]
-        user_prompt = judge.prompt_template["prompt_template"].format(
-            question_1=question["turns"][0],
-            question_2=question["turns"][1],
-            answer_a_1=answer_a["choices"][0]["turns"][0],
-            answer_b_1=answer_b["choices"][0]["turns"][0],
-            answer_a_2=answer_a["choices"][0]["turns"][1],
-            answer_b_2=answer_b["choices"][0]["turns"][1],
-            **kwargs,
-        )
+        # check if language of question turn 2 and answer turn 2 are the same
+        question_lang, question_prob = detect_language(question["turns"][1])
+        answer_a_lang, answer_a_prob = detect_language(answer_a["choices"][0]["turns"][1])
+        answer_b_lang, answer_b_prob = detect_language(answer_b["choices"][0]["turns"][1])
     else:
-        system_prompt = judge.prompt_template["system_prompt"]
-        user_prompt = judge.prompt_template["prompt_template"].format(
-            question=question["turns"][0],
-            answer_a=answer_a["choices"][0]["turns"][0],
-            answer_b=answer_b["choices"][0]["turns"][0],
-            **kwargs,
-        )
+        # check if language question turn 1 and answer turn 1 are the same
+        question_lang, question_prob = detect_language(question["turns"][0])
+        answer_a_lang, answer_a_prob = detect_language(answer_a["choices"][0]["turns"][0])
+        answer_b_lang, answer_b_prob = detect_language(answer_b["choices"][0]["turns"][0])
 
-    winner = "error"
+    if (question_lang == answer_a_lang and question_lang == answer_b_lang) or (question_prob < 0.5 or answer_a_prob < 0.5 or answer_b_prob < 0.5) :
+        message_template = """ Question is {} ({}). Model A is {} ({}). Model B is {} ({}). """
+        message = message_template.format(question_lang, round(question_prob, 2), answer_a_lang, round(answer_a_prob, 2), answer_b_lang, round(answer_b_prob, 2))
+        # print("\nmessage:", message)
+        # print("\nModel A:", answer_a["choices"][0]["turns"][0])
+        # print("\nModel B:", answer_b["choices"][0]["turns"][0])
+        if multi_turn:
+            system_prompt = judge.prompt_template["system_prompt"]
+            user_prompt = judge.prompt_template["prompt_template"].format(
+                question_1=question["turns"][0],
+                question_2=question["turns"][1],
+                answer_a_1=answer_a["choices"][0]["turns"][0],
+                answer_b_1=answer_b["choices"][0]["turns"][0],
+                answer_a_2=answer_a["choices"][0]["turns"][1],
+                answer_b_2=answer_b["choices"][0]["turns"][1],
+                **kwargs,
+            )
+        else:
+            system_prompt = judge.prompt_template["system_prompt"]
+            user_prompt = judge.prompt_template["prompt_template"].format(
+                question=question["turns"][0],
+                answer_a=answer_a["choices"][0]["turns"][0],
+                answer_b=answer_b["choices"][0]["turns"][0],
+                **kwargs,
+            )
 
-    conv = get_conversation_template(model)
-    conv.append_message(conv.roles[0], user_prompt)
-    conv.append_message(conv.roles[1], None)
+        winner = "error"
 
-    if model in ["gpt-3.5-turbo", "gpt-4"]:
-        conv.set_system_message(system_prompt)
-        judgment = chat_completion_openai(model, conv, temperature=0, max_tokens=2048)
-    elif model in ANTHROPIC_MODEL_LIST:
-        if system_prompt != "You are a helpful assistant.":
-            user_prompt = "[Instruction]\n" + system_prompt + "\n\n" + user_prompt
-            conv.messages[0][1] = user_prompt
-        judgment = chat_completion_anthropic(
-            model, conv, temperature=0, max_tokens=1024
-        )
+        conv = get_conversation_template(model)
+        conv.append_message(conv.roles[0], user_prompt)
+        conv.append_message(conv.roles[1], None)
+
+        if model in ["gpt-3.5-turbo", "gpt-4"]:
+            conv.set_system_message(system_prompt)
+            judgment = chat_completion_openai(model, conv, temperature=0, max_tokens=2048)
+        elif model in ANTHROPIC_MODEL_LIST:
+            if system_prompt != "You are a helpful assistant.":
+                user_prompt = "[Instruction]\n" + system_prompt + "\n\n" + user_prompt
+                conv.messages[0][1] = user_prompt
+            judgment = chat_completion_anthropic(
+                model, conv, temperature=0, max_tokens=1024
+            )
+        else:
+            raise ValueError(f"Invalid judge model name: {model}")
     else:
-        raise ValueError(f"Invalid judge model name: {model}")
+        user_prompt = "NA"
+        judgment_template = """ Language error. Question is {} ({}). Model A is {} ({}). Model B is {} ({}).\n\nFinal verdict: [[{}]] """
+        if answer_a_lang == question_lang and answer_b_lang != question_lang:
+            winner = "A"
+        elif answer_a_lang != question_lang and answer_b_lang == question_lang:
+            winner = "B"
+        else:
+            winner = "error"
+        judgment = judgment_template.format(question_lang, round(question_prob, 2), answer_a_lang, round(answer_a_prob, 2), answer_b_lang, round(answer_b_prob, 2), winner)
 
     if judge.prompt_template["output_format"] == "[[A]]":
         if "[[A]]" in judgment:
