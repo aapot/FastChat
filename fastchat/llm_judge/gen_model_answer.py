@@ -286,8 +286,8 @@ if __name__ == "__main__":
 
         ray.init()
 
-    if args.lang == "fi":
-        question_file = f"data/{args.bench_name}/question_finnish.jsonl"
+    if args.lang != "en":
+        question_file = f"data/{args.bench_name}/question_{args.lang}.jsonl"
     else:
         question_file = f"data/{args.bench_name}/question.jsonl"
     if args.answer_file:

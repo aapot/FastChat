@@ -212,14 +212,14 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    if args.lang == "fi":
-        question_file = f"data/{args.bench_name}/question_finnish.jsonl"        
+    if args.lang != "en":
+        question_file = f"data/{args.bench_name}/question_{args.lang}.jsonl"        
     else:
         question_file = f"data/{args.bench_name}/question.jsonl"
     answer_dir = f"data/{args.bench_name}/model_answer"
 
-    if args.lang == "fi":
-        ref_answer_dir = f"data/{args.bench_name}/reference_answer/finnish"
+    if args.lang != "en":
+        ref_answer_dir = f"data/{args.bench_name}/reference_answer/{args.lang}"
     else:    
         ref_answer_dir = f"data/{args.bench_name}/reference_answer"
 
@@ -244,9 +244,9 @@ if __name__ == "__main__":
     if args.mode == "single":
         judges = make_judge_single(args.judge_model, judge_prompts)
         play_a_match_func = play_a_match_single
-        if args.lang == "fi":
+        if args.lang != "en":
             output_file = (
-                f"data/{args.bench_name}/model_judgment/{args.judge_model}_single_finnish.jsonl"
+                f"data/{args.bench_name}/model_judgment/{args.judge_model}_single_{args.lang}.jsonl"
             )
         else:
             output_file = (
@@ -257,9 +257,9 @@ if __name__ == "__main__":
     else:
         judges = make_judge_pairwise(args.judge_model, judge_prompts)
         play_a_match_func = play_a_match_pair
-        if args.lang == "fi":
+        if args.lang != "en":
             output_file = (
-                f"data/{args.bench_name}/model_judgment/{args.judge_model}_pair_finnish.jsonl"
+                f"data/{args.bench_name}/model_judgment/{args.judge_model}_pair_{args.lang}.jsonl"
             )
         else:            
             output_file = (
