@@ -150,4 +150,6 @@ Alternatively, run this script with the path to the judgment file:
 python plot_results.py --judgment-file data/mt_bench/model_judgment/gpt-4_single_finnish.jsonl
 ```
 
+### Limitations
+While the original MTBench has shown 80% agreement between human and GPT-4 ratings, we have not conducted the same experiment on the Finnish MT-Bench. Additionally, the DeepL translations of the questions and reference answers have not verified by a native speaker.
 
