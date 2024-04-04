@@ -151,5 +151,5 @@ python plot_results.py --judgment-file data/mt_bench/model_judgment/gpt-4_single
 ```
 
 ### Limitations
-While the original MTBench has shown 80% agreement between human and GPT-4 ratings, we have not conducted the same experiment on the Finnish MT-Bench. Additionally, the DeepL translations of the questions and reference answers have not verified by a native speaker.
+While the original MTBench has shown 80% agreement between human and GPT-4 ratings, we have not conducted the same experiment on the Finnish MT-Bench. Additionally, the DeepL translations of the questions and reference answers have not been verified by a native speaker.
 
