@@ -58,7 +58,7 @@ ANTHROPIC_MODEL_LIST = (
     "claude-instant-1.2",
 )
 
-cache_dir = "/scratch/project_462000319/transformers_cache"
+cache_dir = ""
 
 class BaseModelAdapter:
     """The base and the default model adapter."""
