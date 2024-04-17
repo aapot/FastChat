@@ -58,7 +58,7 @@ ANTHROPIC_MODEL_LIST = (
     "claude-instant-1.2",
 )
 
-cache_dir = "/scratch/project_462000319/transformers_cache"
+cache_dir = "/scratch/project_2010225/transformers_cache"
 
 class BaseModelAdapter:
     """The base and the default model adapter."""
@@ -83,15 +83,24 @@ class BaseModelAdapter:
                 model_path, # use_fast=False, revision=revision, trust_remote_code=True,
             )
         try:
-            model = AutoModelForCausalLM.from_pretrained(
-                model_path,
-                #low_cpu_mem_usage=True,
-                trust_remote_code=True,
-                # **from_pretrained_kwargs,
-                device_map='auto',
-                torch_dtype=torch.bfloat16,
-                cache_dir=cache_dir
-            )
+
+            if "quantized" in model_path:
+                print("Loading quantized model")
+                model = AutoModel.from_pretrained(model_path, 
+                                                  low_cpu_mem_usage=True, 
+                                                  #trust_remote_code=True, 
+                                                  #**from_pretrained_kwargs, 
+                                                  cache_dir=cache_dir)
+            else:
+                model = AutoModelForCausalLM.from_pretrained(
+                    model_path,
+                    #low_cpu_mem_usage=True,
+                    trust_remote_code=True,
+                    # **from_pretrained_kwargs,
+                    device_map='auto',
+                    torch_dtype=torch.bfloat16,
+                    cache_dir=cache_dir
+                )
             print("Loaded model")
         except NameError:
             model = AutoModel.from_pretrained(
@@ -208,6 +217,7 @@ def load_model(
                 )
     elif device == "cuda":
         kwargs = {"torch_dtype": torch.float16}
+        print("num_gpus:", num_gpus)
         if num_gpus != 1:
             kwargs["device_map"] = "auto"
             if max_gpu_memory is None:
@@ -215,8 +225,9 @@ def load_model(
                     "device_map"
                 ] = "sequential"  # This is important for not the same VRAM sizes
                 available_gpu_memory = get_gpu_memory(num_gpus)
+                print("available_gpu_memory:", available_gpu_memory)
                 kwargs["max_memory"] = {
-                    i: str(int(available_gpu_memory[i] * 0.85)) + "GiB"
+                    i: str(int(available_gpu_memory[0] * 0.85)) + "GiB"
                     for i in range(num_gpus)
                 }
             else:
@@ -2117,10 +2128,19 @@ class PoroAdapter(BaseModelAdapter):
     """The model adapter for Poro chat (e.g. https://huggingface.co/LumiOpen/Poro-34B)"""
 
     def match(self, model_path: str):
-        return "poro-34b" in model_path.lower()
+        return "poro" in model_path.lower()
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("poro")
+
+class VikingAdapter(BaseModelAdapter):
+    """The model adapter for Viking chat"""
+
+    def match(self, model_path: str):
+        return "viking" in model_path.lower()
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("viking")
 
 class LlamaFinnishInstructAdapter(BaseModelAdapter):
     """The model adapter for llama-7b-finnish-instruct-v0.2 (e.g. https://huggingface.co/Finnish-NLP/llama-7b-finnish-instruct-v0.2)"""
@@ -2134,6 +2154,7 @@ class LlamaFinnishInstructAdapter(BaseModelAdapter):
 
 # Note: the registration order matters.
 # The one registered earlier has a higher matching priority.
+register_model_adapter(VikingAdapter)
 register_model_adapter(PoroAdapter)
 register_model_adapter(LlamaFinnishInstructAdapter)
 register_model_adapter(PeftModelAdapter)
