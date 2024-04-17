@@ -1418,23 +1418,9 @@ register_conv_template(
     )
 )
 
-# Poro with Zephyr-style template
-# reference: TBA
-# register_conv_template(
-#     Conversation(
-#         name="poro",
-#         system_template="<|system|>\n{system_message}",
-#         roles=("<|user|>", "<|assistant|>"),
-#         sep_style=SeparatorStyle.CHATML,
-#         sep="</s>",
-#         stop_token_ids=[2],
-#         stop_str="</s>",
-#     )
-# )
 
 
-# Poro with OpenAI-style template
-# reference: TBA
+# reference: https://huggingface.co/LumiOpen/Poro-34B-chat
 register_conv_template(
     Conversation(
         name="poro",
@@ -1447,6 +1433,7 @@ register_conv_template(
     )
 )
 
+# reference: TBA
 register_conv_template(
     Conversation(
         name="viking",
