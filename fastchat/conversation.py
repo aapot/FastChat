@@ -1418,17 +1418,45 @@ register_conv_template(
     )
 )
 
-# Poro with Zehpyr-style template
+# Poro with Zephyr-style template
+# reference: TBA
+# register_conv_template(
+#     Conversation(
+#         name="poro",
+#         system_template="<|system|>\n{system_message}",
+#         roles=("<|user|>", "<|assistant|>"),
+#         sep_style=SeparatorStyle.CHATML,
+#         sep="</s>",
+#         stop_token_ids=[2],
+#         stop_str="</s>",
+#     )
+# )
+
+
+# Poro with OpenAI-style template
 # reference: TBA
 register_conv_template(
     Conversation(
         name="poro",
-        system_template="<|system|>\n{system_message}",
-        roles=("<|user|>", "<|assistant|>"),
+        system_template="<|im_start|>system\n{system_message}",
+        # system_message="You are a helpful and harmless assistant named Assistant. You can understand and respond to questions in Finnish and English.",
+        roles=("<|im_start|>user", "<|im_start|>assistant"),
         sep_style=SeparatorStyle.CHATML,
-        sep="</s>",
-        stop_token_ids=[2],
-        stop_str="</s>",
+        sep="<|im_end|>",
+        stop_token_ids=[4, 5],
+    )
+)
+
+register_conv_template(
+    Conversation(
+        name="viking",
+        system_template="<|im_start|>system\n{system_message}",
+        # system_message="You are a helpful and harmless assistant named Assistant. You can understand and respond to questions in Finnish and English.",
+        roles=("<|im_start|>user", "<|im_start|>assistant"),
+        sep_style=SeparatorStyle.CHATML,
+        sep="<|im_end|>",
+        # stop_str="<|im_end|>",
+        stop_token_ids=[22, 23],
     )
 )
 
