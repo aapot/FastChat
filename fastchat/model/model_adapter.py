@@ -86,9 +86,9 @@ class BaseModelAdapter:
                 print("Loading quantized model")
                 model = AutoModel.from_pretrained(model_path, 
                                                   low_cpu_mem_usage=True, 
-                                                  #trust_remote_code=True, 
-                                                  #**from_pretrained_kwargs, 
-                                                  cache_dir=cache_dir)
+                                                  trust_remote_code=True, 
+                                                  **from_pretrained_kwargs
+                                                  )
             else:
                 model = AutoModelForCausalLM.from_pretrained(
                     model_path,
@@ -97,7 +97,6 @@ class BaseModelAdapter:
                     # **from_pretrained_kwargs,
                     device_map='auto',
                     torch_dtype=torch.bfloat16,
-                    cache_dir=cache_dir
                 )
             print("Loaded model")
         except NameError:
@@ -106,7 +105,6 @@ class BaseModelAdapter:
                 low_cpu_mem_usage=True,
                 trust_remote_code=True,
                 **from_pretrained_kwargs,
-                cache_dir=cache_dir
             )
         return model, tokenizer
 
@@ -665,13 +663,11 @@ class VicunaAdapter(BaseModelAdapter):
         revision = from_pretrained_kwargs.get("revision", "main")
         tokenizer = AutoTokenizer.from_pretrained(
             model_path, use_fast=self.use_fast_tokenizer, revision=revision,
-            cache_dir=cache_dir
         )
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             low_cpu_mem_usage=True,
             **from_pretrained_kwargs,
-            cache_dir=cache_dir
         )
         self.raise_warning_for_old_weights(model)
         return model, tokenizer
@@ -717,11 +713,9 @@ class AiroborosAdapter(BaseModelAdapter):
             trust_remote_code=True,
             max_seq_len=8192,
             **from_pretrained_kwargs,
-            cache_dir=cache_dir
         )
         tokenizer = AutoTokenizer.from_pretrained(
             model_path, trust_remote_code=True, use_fast=True,
-            cache_dir=cache_dir
         )
         return model, tokenizer
 
@@ -743,13 +737,11 @@ class LongChatAdapter(BaseModelAdapter):
 
         tokenizer = AutoTokenizer.from_pretrained(
             model_path, use_fast=self.use_fast_tokenizer, revision=revision,
-            cache_dir=cache_dir
         )
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             low_cpu_mem_usage=True,
             **from_pretrained_kwargs,
-            cache_dir=cache_dir
         )
         return model, tokenizer
 
@@ -863,12 +855,11 @@ class DollyV2Adapter(BaseModelAdapter):
 
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
         revision = from_pretrained_kwargs.get("revision", "main")
-        tokenizer = AutoTokenizer.from_pretrained(model_path, revision=revision, cache_dir=cache_dir)
+        tokenizer = AutoTokenizer.from_pretrained(model_path, revision=revision)
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             low_cpu_mem_usage=True,
             **from_pretrained_kwargs,
-            cache_dir=cache_dir
         )
         # 50277 means "### End"
         tokenizer.eos_token_id = 50277
@@ -964,10 +955,9 @@ class MPTAdapter(BaseModelAdapter):
             trust_remote_code=True,
             max_seq_len=8192,
             **from_pretrained_kwargs,
-            cache_dir=cache_dir
         )
         tokenizer = AutoTokenizer.from_pretrained(
-            model_path, trust_remote_code=True, revision=revision, cache_dir=cache_dir
+            model_path, trust_remote_code=True, revision=revision
         )
         model.config.eos_token_id = tokenizer.eos_token_id
         model.config.pad_token_id = tokenizer.pad_token_id
@@ -1050,10 +1040,9 @@ class ReaLMAdapter(BaseModelAdapter):
         return "ReaLM" in model_path
 
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
-        tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=True, cache_dir=cache_dir)
+        tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=True)
         model = AutoModelForCausalLM.from_pretrained(
             model_path, low_cpu_mem_usage=True, **from_pretrained_kwargs,
-            cache_dir=cache_dir
         )
         return model, tokenizer
 
@@ -1182,12 +1171,11 @@ class RedPajamaINCITEAdapter(BaseModelAdapter):
 
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
         revision = from_pretrained_kwargs.get("revision", "main")
-        tokenizer = AutoTokenizer.from_pretrained(model_path, revision=revision, cache_dir=cache_dir)
+        tokenizer = AutoTokenizer.from_pretrained(model_path, revision=revision)
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             low_cpu_mem_usage=True,
             **from_pretrained_kwargs,
-            cache_dir=cache_dir
         )
         return model, tokenizer
 
@@ -1273,12 +1261,10 @@ class GuanacoAdapter(BaseModelAdapter):
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
         revision = from_pretrained_kwargs.get("revision", "main")
         tokenizer = AutoTokenizer.from_pretrained(
-            model_path, use_fast=self.use_fast_tokenizer, revision=revision,
-            cache_dir=cache_dir
+            model_path, use_fast=self.use_fast_tokenizer, revision=revision
         )
         model = AutoModelForCausalLM.from_pretrained(
-            model_path, low_cpu_mem_usage=True, **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            model_path, low_cpu_mem_usage=True, **from_pretrained_kwargs
         )
         # Fix a bug in tokenizer config
         tokenizer.eos_token_id = model.config.eos_token_id
@@ -1332,13 +1318,12 @@ class FalconAdapter(BaseModelAdapter):
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
         revision = from_pretrained_kwargs.get("revision", "main")
         # Strongly suggest using bf16, which is recommended by the author of Falcon
-        tokenizer = AutoTokenizer.from_pretrained(model_path, revision=revision, cache_dir=cache_dir)
+        tokenizer = AutoTokenizer.from_pretrained(model_path, revision=revision)
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             low_cpu_mem_usage=True,
             trust_remote_code=True,
-            **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            **from_pretrained_kwargs
         )
         # In Falcon tokenizer config and special config there is not any pad token
         # Setting `pad_token_id` to 9, which corresponds to special token '>>SUFFIX<<'
@@ -1368,15 +1353,13 @@ class TigerBotAdapter(BaseModelAdapter):
         tokenizer = AutoTokenizer.from_pretrained(
             model_path,
             trust_remote_code=True,
-            revision=revision,
-            cache_dir=cache_dir
+            revision=revision
         )
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             trust_remote_code=True,
             low_cpu_mem_usage=True,
-            **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            **from_pretrained_kwargs
         )
         return model, tokenizer
 
@@ -1393,15 +1376,13 @@ class BaichuanAdapter(BaseModelAdapter):
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
         revision = from_pretrained_kwargs.get("revision", "main")
         tokenizer = AutoTokenizer.from_pretrained(
-            model_path, trust_remote_code=True, revision=revision,
-            cache_dir=cache_dir
+            model_path, trust_remote_code=True, revision=revision
         )
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             trust_remote_code=True,
             low_cpu_mem_usage=True,
-            **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            **from_pretrained_kwargs
         )
         return model, tokenizer
 
@@ -1426,12 +1407,10 @@ class XGenAdapter(BaseModelAdapter):
             model_path,
             low_cpu_mem_usage=True,
             trust_remote_code=True,
-            **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            **from_pretrained_kwargs
         )
         tokenizer = AutoTokenizer.from_pretrained(
-            model_path, trust_remote_code=True, revision=revision,
-            cache_dir=cache_dir
+            model_path, trust_remote_code=True, revision=revision
         )
         model.config.eos_token_id = 50256
         return model, tokenizer
@@ -1464,15 +1443,13 @@ class InternLMChatAdapter(BaseModelAdapter):
             model_path,
             low_cpu_mem_usage=True,
             trust_remote_code=True,
-            **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            **from_pretrained_kwargs
         )
         model = model.eval()
         if "8k" in model_path.lower():
             model.config.max_sequence_length = 8192
         tokenizer = AutoTokenizer.from_pretrained(
-            model_path, trust_remote_code=True, revision=revision, 
-            cache_dir=cache_dir
+            model_path, trust_remote_code=True, revision=revision
         )
         return model, tokenizer
 
@@ -1529,10 +1506,9 @@ class CuteGPTAdapter(BaseModelAdapter):
         return "cutegpt" in model_path.lower()
 
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
-        tokenizer = LlamaTokenizer.from_pretrained(model_path, cache_dir=cache_dir)
+        tokenizer = LlamaTokenizer.from_pretrained(model_path)
         model = AutoModelForCausalLM.from_pretrained(
-            model_path, low_cpu_mem_usage=True, **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            model_path, low_cpu_mem_usage=True, **from_pretrained_kwargs
         )
         tokenizer.eos_token_id = tokenizer.convert_tokens_to_ids("<end>")
         model.config.eos_token_id = tokenizer.eos_token_id
@@ -1564,14 +1540,12 @@ class OpenOrcaAdapter(BaseModelAdapter):
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
         revision = from_pretrained_kwargs.get("revision", "main")
         tokenizer = AutoTokenizer.from_pretrained(
-            model_path, use_fast=self.use_fast_tokenizer, revision=revision,
-            cache_dir=cache_dir
+            model_path, use_fast=self.use_fast_tokenizer, revision=revision
         )
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             low_cpu_mem_usage=True,
-            **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            **from_pretrained_kwargs
         ).eval()
         return model, tokenizer
 
@@ -1605,14 +1579,12 @@ class Hermes2Adapter(BaseModelAdapter):
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
         revision = from_pretrained_kwargs.get("revision", "main")
         tokenizer = AutoTokenizer.from_pretrained(
-            model_path, use_fast=self.use_fast_tokenizer, revision=revision,
-            cache_dir=cache_dir
+            model_path, use_fast=self.use_fast_tokenizer, revision=revision
         )
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             low_cpu_mem_usage=True,
-            **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            **from_pretrained_kwargs
         ).eval()
         return model, tokenizer
 
@@ -1681,16 +1653,14 @@ class QwenChatAdapter(BaseModelAdapter):
         # config.use_flash_attn = False
         self.float_set(config, "fp16")
         generation_config = GenerationConfig.from_pretrained(
-            model_path, trust_remote_code=True,
-            cache_dir=cache_dir
+            model_path, trust_remote_code=True
         )
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             config=config,
             low_cpu_mem_usage=True,
             trust_remote_code=True,
-            **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            **from_pretrained_kwargs
         ).eval()
         if hasattr(model.config, "use_dynamic_ntk") and model.config.use_dynamic_ntk:
             model.config.max_sequence_length = 16384
@@ -1786,12 +1756,11 @@ class AquilaChatAdapter(BaseModelAdapter):
             model_path,
             low_cpu_mem_usage=True,
             trust_remote_code=True,
-            **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            **from_pretrained_kwargs
         )
         model = model.eval()
         tokenizer = AutoTokenizer.from_pretrained(
-            model_path, trust_remote_code=True, revision=revision, cache_dir=cache_dir
+            model_path, trust_remote_code=True, revision=revision
         )
         return model, tokenizer
 
@@ -1820,15 +1789,13 @@ class Lamma2ChineseAdapter(BaseModelAdapter):
         tokenizer = AutoTokenizer.from_pretrained(
             model_path,
             trust_remote_code=True,
-            revision=revision,
-            cache_dir=cache_dir
+            revision=revision
         )
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             trust_remote_code=True,
             low_cpu_mem_usage=True,
-            **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            **from_pretrained_kwargs
         )
         return model, tokenizer
 
@@ -1847,15 +1814,13 @@ class Lamma2ChineseAlpacaAdapter(BaseModelAdapter):
         tokenizer = AutoTokenizer.from_pretrained(
             model_path,
             trust_remote_code=True,
-            revision=revision,
-            cache_dir=cache_dir
+            revision=revision
         )
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             trust_remote_code=True,
             low_cpu_mem_usage=True,
-            **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            **from_pretrained_kwargs
         )
         return model, tokenizer
 
@@ -1877,15 +1842,13 @@ class VigogneAdapter(BaseModelAdapter):
             model_path,
             use_fast=self.use_fast_tokenizer,
             trust_remote_code=True,
-            revision=revision,
-            cache_dir=cache_dir
+            revision=revision
         )
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             trust_remote_code=True,
             low_cpu_mem_usage=True,
-            **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            **from_pretrained_kwargs
         ).eval()
         return model, tokenizer
 
@@ -1913,15 +1876,13 @@ class OpenLLaMaOpenInstructAdapter(BaseModelAdapter):
             model_path,
             use_fast=self.use_fast_tokenizer,
             trust_remote_code=True,
-            revision=revision,
-            cache_dir=cache_dir
+            revision=revision
         )
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             trust_remote_code=True,
             low_cpu_mem_usage=True,
-            **from_pretrained_kwargs,
-            cache_dir=cache_dir
+            **from_pretrained_kwargs
         ).eval()
         return model, tokenizer
 
