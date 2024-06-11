@@ -15,7 +15,7 @@ For pairwise judging, if the language of Model A does not match the language of 
 
 ## Install
 ```
-git clone https://github.com/LumiOPen/FastChat.git
+git clone https://github.com/LumiOpen/FastChat.git
 cd FastChat
 pip install -e ".[model_worker,llm_judge]"
 ```
