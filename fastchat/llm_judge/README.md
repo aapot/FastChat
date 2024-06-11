@@ -18,6 +18,7 @@ For pairwise judging, if the language of Model A does not match the language of 
 git clone https://github.com/LumiOpen/FastChat.git
 cd FastChat
 pip install -e ".[model_worker,llm_judge]"
+pip install fasttext
 ```
 Download [FastText language identifier](https://fasttext.cc/docs/en/language-identification.html) and change `FASTTEXT_LID_BINARY` in [common.py](https://github.com/LumiOpen/FastChat/blob/main/fastchat/llm_judge/common.py) to point to your local lid binary.
 
