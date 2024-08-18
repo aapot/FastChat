@@ -536,3 +536,31 @@ register_model_info(
     "https://huggingface.co/Finnish-NLP/llama-7b-finnish-instruct-v0.2",
     "Finetune of Llama-7b with Finnish instruction data",
 )
+
+register_model_info(
+    ["Ahma-3B"],
+    "Ahma-3B",
+    "https://huggingface.co/Finnish-NLP/Ahma-3B",
+    "Ahma 3B model pretrained for Finnish with Llama architecture",
+)
+
+register_model_info(
+    ["Ahma-7B"],
+    "Ahma-7B",
+    "https://huggingface.co/Finnish-NLP/Ahma-7B",
+    "Ahma 7B model pretrained for Finnish with Llama architecture",
+)
+
+register_model_info(
+    ["Ahma-3B-Instruct"],
+    "Ahma-3B-Instruct",
+    "https://huggingface.co/Finnish-NLP/Ahma-3B-Instruct",
+    "Finetune of Ahma 3B for instruct/chat use cases",
+)
+
+register_model_info(
+    ["Ahma-7B-Instruct"],
+    "Ahma-7B-Instruct",
+    "https://huggingface.co/Finnish-NLP/Ahma-7B-Instruct",
+    "Finetune of Ahma 7B for instruct/chat use cases",
+)
