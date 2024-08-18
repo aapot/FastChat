@@ -2110,9 +2110,29 @@ class LlamaFinnishInstructAdapter(BaseModelAdapter):
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("llama-7b-finnish-instruct")
 
+class AhmaBaseAdapter(BaseModelAdapter):
+    """The model adapter for Ahma base models (e.g. https://huggingface.co/Finnish-NLP/Ahma-3B)"""
+
+    def match(self, model_path: str):
+        return "ahma" in model_path.lower() and "instruct" not in model_path.lower()
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("ahma")
+
+class AhmaInstructAdapter(BaseModelAdapter):
+    """The model adapter for Ahma instruct models (e.g. https://huggingface.co/Finnish-NLP/Ahma-3B-Instruct)"""
+
+    def match(self, model_path: str):
+        return "ahma" in model_path.lower() and "instruct" in model_path.lower()
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("ahma-instruct")
+
 
 # Note: the registration order matters.
 # The one registered earlier has a higher matching priority.
+register_model_adapter(AhmaBaseAdapter)
+register_model_adapter(AhmaInstructAdapter)
 register_model_adapter(VikingAdapter)
 register_model_adapter(PoroAdapter)
 register_model_adapter(LlamaFinnishInstructAdapter)
